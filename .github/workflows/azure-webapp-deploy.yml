@@ -1,0 +1,56 @@
+# Workflow: Build with Maven and deploy to Azure Web App using publish profile
+# IMPORTANT: Replace the APP_NAME value below with your actual Azure Web App name
+# You already saved the publish profile XML in the repository secret named AZURE_WEBAPP_PUBLISH_PROFILE
+
+name: Build and deploy to Azure Web App (publish profile)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      # Replace this with your actual app name (or set a repo secret and reference it here)
+      APP_NAME: saikvtapp
+      PACKAGE_PATH: target/*.jar
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Cache Maven local repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Build with Maven
+        run: mvn -B -DskipTests package
+
+      - name: Show build artifacts
+        run: ls -la target || true
+
+      - name: Deploy to Azure Web App (publish profile)
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.APP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ${{ env.PACKAGE_PATH }}
+
+      - name: Deployment info
+        if: success()
+        run: |
+          echo "Deployment finished. Visit: https://${{ env.APP_NAME }}.azurewebsites.net"
+
