@@ -1,20 +1,10 @@
 # Server configuration
 server.port=8080
-
-# H2 Database configuration
-spring.jpa.defer-datasource-initialization=true
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
-spring.datasource.url=jdbc:h2:mem:exhibitiondb
-spring.datasource.driverClassName=org.h2.Driver
-spring.datasource.username=sa
-spring.datasource.password=password
-spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
-
-# JPA configuration
-spring.jpa.hibernate.ddl-auto=create-drop
-spring.jpa.show-sql=true
-
 # Springdoc OpenAPI configuration
 springdoc.swagger-ui.path=/swagger-ui.html
 springdoc.api-docs.path=/v3/api-docs
+
+# Expose health and info endpoints
+management.endpoints.web.exposure.include=health,info
+# Show health details (set to 'when_authorized' or 'never' in production)
+management.endpoint.health.show-details=always
