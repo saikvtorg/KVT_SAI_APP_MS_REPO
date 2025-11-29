@@ -1,11 +1,12 @@
 package com.saikvt.event.controller;
 
 import com.saikvt.event.entity.Exhibition;
+import com.saikvt.event.service.ExhibitionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.util.Optional;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,47 +17,37 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @RestController
 @RequestMapping("/api/exhibitions")
-@Tag(name = "Exhibitions", description = "APIs to manage exhibitions (dummy implementations)")
+@Tag(name = "Exhibitions", description = "APIs to manage exhibitions")
 public class ExhibitionController {
 
+    private final ExhibitionService exhibitionService;
+
+    public ExhibitionController(ExhibitionService exhibitionService) {
+        this.exhibitionService = exhibitionService;
+    }
+
     @GetMapping("/{id}")
-    @Operation(summary = "Get exhibition by id", description = "Returns a hardcoded demo exhibition for the requested id")
+    @Operation(summary = "Get exhibition by id", description = "Returns the exhibition from the database for the requested id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Exhibition found",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Exhibition.class)))
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Exhibition.class))),
+            @ApiResponse(responseCode = "404", description = "Exhibition not found")
     })
     public ResponseEntity<Exhibition> getExhibition(@PathVariable String id) {
-        // Dummy hardcoded response
-        Exhibition ex = new Exhibition(
-                id,
-                "Demo Exhibition",
-                "A hardcoded demo exhibition",
-                LocalDate.now(),
-                LocalDate.now().plusDays(7),
-                "Demo Hall",
-                "UPCOMING"
-        );
-        return ResponseEntity.ok(ex);
+        Optional<Exhibition> exOpt = exhibitionService.getExhibitionById(id);
+        return exOpt.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    @Operation(summary = "Create exhibition", description = "Accepts an Exhibition JSON and returns a created exhibition (dummy, not persisted)")
+    @Operation(summary = "Create exhibition", description = "Accepts an Exhibition JSON and persists it to the DB")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Exhibition created",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Exhibition.class)))
     })
-    // Use the fully-qualified Swagger RequestBody annotation to avoid conflict with Spring's RequestBody
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Exhibition payload", required = true,
             content = @Content(schema = @Schema(implementation = Exhibition.class)))
     public ResponseEntity<Exhibition> createExhibition(@RequestBody Exhibition exhibition) {
-        // Dummy behavior: echo back the exhibition and set an ID
-        if (exhibition.getExhibitionId() == null || exhibition.getExhibitionId().isEmpty()) {
-            exhibition.setExhibitionId("ex-" + System.currentTimeMillis());
-        }
-        // Set default status if missing
-        if (exhibition.getStatus() == null) {
-            exhibition.setStatus("CREATED");
-        }
-        return new ResponseEntity<>(exhibition, HttpStatus.CREATED);
+        Exhibition saved = exhibitionService.createExhibition(exhibition);
+        return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 }

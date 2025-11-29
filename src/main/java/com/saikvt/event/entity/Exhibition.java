@@ -4,14 +4,28 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
+@Table(name = "exhibition")
 public class Exhibition {
     @Id
+    @Column(name = "exhibition_id")
     private String exhibitionId;
+
+    @Column(name = "name", nullable = false)
     private String name;
+
+    @Column(name = "description")
     private String description;
+
+    @Column(name = "start_date")
     private LocalDate startDate;
+
+    @Column(name = "end_date")
     private LocalDate endDate;
+
+    @Column(name = "location")
     private String location;
+
+    @Column(name = "status")
     private String status;
 
     @OneToMany(mappedBy = "exhibition", cascade = CascadeType.ALL, orphanRemoval = true)
