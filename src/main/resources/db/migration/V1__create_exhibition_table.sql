@@ -1,12 +1,11 @@
--- Flyway migration: create exhibition table
--- This migration will be applied once by Flyway on startup
+-- Flyway migration: create exhibition table (SQL Server compatible)
 
 CREATE TABLE exhibition (
-    exhibition_id VARCHAR(100) PRIMARY KEY,
+    exhibition_id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    description VARCHAR(2000),
+    description VARCHAR(MAX),
     start_date DATE,
     end_date DATE,
     location VARCHAR(255),
-    status VARCHAR(50)
+    status VARCHAR(100)
 );
