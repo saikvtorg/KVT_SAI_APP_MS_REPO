@@ -36,6 +36,12 @@
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!-- Microsoft SQL Server JDBC driver available at runtime -->
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>12.2.0.jre11</version>
+        </dependency>
         <!-- Flyway for database migrations -->
         <dependency>
             <groupId>org.flywaydb</groupId>
