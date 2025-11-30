@@ -7,7 +7,7 @@ on:
 
 env:
   # Replace with your Azure Web App name
-  AZURE_WEBAPP_NAME: your-azure-webapp-name
+  AZURE_WEBAPP_NAME: saikvtapp
   # Defaults for SQL Server connection (override in workflow if needed)
   AZ_SQL_SERVER_HOST: sai-sqlserver.database.windows.net
   AZ_SQL_DB_NAME: saikvtdb
