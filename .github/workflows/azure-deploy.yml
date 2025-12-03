@@ -1,4 +1,4 @@
-name: Build, Migrate and Deploy to Azure Web App
+name: Build, Migrate and Deploy to Azure Web App (azure deploy)
 
 on:
   push:
