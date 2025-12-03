@@ -39,11 +39,17 @@ jobs:
   migrate:
     runs-on: ubuntu-latest
     needs: build
-    # Set SKIP_CI_MIGRATIONS secret to 'true' to skip automatic CI migrations
-    if: ${{ secrets.SKIP_CI_MIGRATIONS != 'true' }}
+    # NOTE: job-level `if` cannot reference secrets; use an early step to skip when the secret is set.
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Check if CI migrations should be skipped
+        run: |
+          if [ "${{ secrets.SKIP_CI_MIGRATIONS }}" = "true" ]; then
+            echo "SKIP_CI_MIGRATIONS=true -> skipping CI migrations"
+            exit 0
+          fi
 
       - name: Install prerequisites for sqlcmd
         run: |
@@ -64,7 +70,7 @@ jobs:
           AZ_SQL_SERVER_PASSWORD: ${{ secrets.AZ_SQL_SERVER_PASSWORD }}
         run: |
           set -e
-          SQLCMD="/opt/mssql-tools/bin/sqlcmd -S $AZ_SQL_SERVER_HOST -U $AZ_SQL_USER -P '$AZ_SQL_SERVER_PASSWORD' -d $AZ_SQL_DB_NAME -N"
+          SQLCMD="/opt/mssql-tools/bin/sqlcmd -S $AZ_SQL_SERVER_HOST -U $AZ_SQL_USER -P \"$AZ_SQL_SERVER_PASSWORD\" -d $AZ_SQL_DB_NAME -N"
           echo "Running V1 migration"
           $SQLCMD -i src/main/resources/db/migration/V1__create_exhibition_table.sql
           echo "Running V2 migration"
