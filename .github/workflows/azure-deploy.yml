@@ -14,6 +14,11 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # Map secrets into environment variables so we can safely reference them in 'if' expressions
+    env:
+      AZ_SQL_SERVER_PASSWORD: ${{ secrets.AZ_SQL_SERVER_PASSWORD }}
+      AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
+      AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
 
     steps:
       - name: Checkout
@@ -37,16 +42,20 @@ jobs:
       - name: Deploy to Azure WebApp
         uses: Azure/webapps-deploy@v2
         with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: target/*.jar
 
       - name: (Optional) Set AZ_SQL_SERVER_PASSWORD app setting
-        if: ${{ secrets.AZ_SQL_SERVER_PASSWORD != '' }}
+        if: ${{ env.AZ_SQL_SERVER_PASSWORD != '' }}
         uses: azure/CLI@v1
+        env:
+          AZ_SQL_SERVER_PASSWORD: ${{ secrets.AZ_SQL_SERVER_PASSWORD }}
+          AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
+          AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
         with:
           inlineScript: |
-            az webapp config appsettings set --name ${{ secrets.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --settings AZ_SQL_SERVER_PASSWORD="${{ secrets.AZ_SQL_SERVER_PASSWORD }}"
+            az webapp config appsettings set --name "$AZURE_WEBAPP_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --settings AZ_SQL_SERVER_PASSWORD="$AZ_SQL_SERVER_PASSWORD"
 
 # Notes:
 # - Requires repository secrets: AZURE_WEBAPP_PUBLISH_PROFILE, AZURE_WEBAPP_NAME, AZURE_RESOURCE_GROUP, AZ_SQL_SERVER_PASSWORD (optional)
