@@ -76,16 +76,21 @@
     </dependencies>
     <build>
         <resources>
+            <!-- Exclude all migration folders from the generic resources copy -->
             <resource>
                 <directory>src/main/resources</directory>
                 <excludes>
-                    <!-- Do not package development or H2-specific migrations into the production JAR -->
-                    <exclude>db/migration/active/**</exclude>
-                    <exclude>db/migration/dev/**</exclude>
-                    <!-- Exclude any intentionally disabled migration files -->
-                    <exclude>db/migration/*disabled</exclude>
-                    <exclude>db/migration/dev/*disabled</exclude>
+                    <exclude>db/migration/**</exclude>
                 </excludes>
+            </resource>
+
+            <!-- Explicitly include only canonical migrations and place them under db/migration in the JAR -->
+            <resource>
+                <directory>src/main/resources/db/migration/canonical</directory>
+                <targetPath>db/migration</targetPath>
+                <includes>
+                    <include>**/*.sql</include>
+                </includes>
             </resource>
         </resources>
         <plugins>
