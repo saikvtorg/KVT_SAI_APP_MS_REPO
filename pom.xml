@@ -75,6 +75,19 @@
         </dependency>
     </dependencies>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <!-- Do not package development or H2-specific migrations into the production JAR -->
+                    <exclude>db/migration/active/**</exclude>
+                    <exclude>db/migration/dev/**</exclude>
+                    <!-- Exclude any intentionally disabled migration files -->
+                    <exclude>db/migration/*disabled</exclude>
+                    <exclude>db/migration/dev/*disabled</exclude>
+                </excludes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
