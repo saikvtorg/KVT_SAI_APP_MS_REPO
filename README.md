@@ -31,8 +31,9 @@ java -jar target/exhibition-management-system-0.0.1-SNAPSHOT.jar --spring.profil
 
 ## Flyway migrations
 
-- Migrations are in `src/main/resources/db/migration/` and will be applied automatically by Flyway at startup for the active profile.
-- The repository contains SQL Server-compatible migrations (V1 and V2) for use against Azure SQL.
+- Canonical migrations are now located in `src/main/resources/db/migration/canonical/` (SQL Server-compatible files for Azure/prod).
+- Development (local H2) migrations are in `src/main/resources/db/migration/active/` to ensure H2 compatibility during local runs.
+- For Azure deployments, run the canonical SQL Server migrations manually against your Azure SQL database (or enable Flyway in `application-azure.properties` after validating compatibility).
 
 ## Azure DB & Flyway note (important)
 
@@ -81,13 +82,27 @@ Workflow path: `.github/workflows/azure-deploy.yml`
 ### Required repository secrets
 
 - `AZURE_WEBAPP_PUBLISH_PROFILE` — contents of the Azure Web App publish profile (XML) (used to deploy the JAR and configure App Settings).
-- `AZ_SQL_SERVER_PASSWORD` — password for the Azure SQL user (e.g., `sai-admin@sai-sqlserver`).
+- `AZURE_WEBAPP_NAME` — the name of your Azure Web App (used by actions that call az/webapps-deploy).
+- `AZURE_RESOURCE_GROUP` — resource group of the Web App (used when setting app settings via Azure CLI).
+- `AZ_SQL_SERVER_PASSWORD` — password for the Azure SQL user (e.g., `sai-admin@sai-sqlserver`) (optional; used to set an App Setting if provided).
+
+### How to run canonical migrations (manual)
+
+From your workstation or a secure VM that has access to the Azure SQL server, run the SQL files from the canonical folder in order:
+
+```bash
+export AZ_SQL_SERVER_PASSWORD='your-db-password'
+SQLCMD="sqlcmd -S <your-server>.database.windows.net -U <user> -P $AZ_SQL_SERVER_PASSWORD -d <database> -N"
+$SQLCMD -i src/main/resources/db/migration/canonical/V1__create_exhibition_table.sql
+$SQLCMD -i src/main/resources/db/migration/canonical/V2__create_module_stall_poster_tables.sql
+```
 
 ### How the workflow works
 
-- On push to `main`, the workflow builds the JAR, deploys it to the specified Azure Web App using the publish profile, and sets the `AZ_SQL_SERVER_PASSWORD` application setting on the Web App so the app can pick it up at runtime.
+- On push to `main`, the workflow builds the JAR, deploys it to the specified Azure Web App using the publish profile, and (optionally) sets the `AZ_SQL_SERVER_PASSWORD` application setting on the Web App so the app can pick it up at runtime.
 
-### Notes
+### Notes & best practices
 
-- Ensure the SQL Server firewall allows your Web App to reach it (enable `Allow Azure services` or add the Web App outbound IPs).
-- For production, consider storing DB credentials in Azure Key Vault and referencing them from App Service.
+- The repository now uses a single canonical Flyway migrations folder: `src/main/resources/db/migration/` (dev copies were removed to avoid duplication). Use those files for all environments.
+- For the `azure` profile, Flyway is disabled by default (see `application-azure.properties`) to avoid startup failures on some Azure SQL compatibility levels. Run migrations manually using `sqlcmd` or enable Flyway after verifying compatibility in your target DB.
+- For production, prefer Azure Key Vault + Managed Identity for DB credentials instead of storing secrets in App Settings.

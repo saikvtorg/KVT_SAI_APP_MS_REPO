@@ -1,11 +1,4 @@
--- Flyway migration: create exhibition table (SQL Server compatible)
+-- Moved to canonical migrations folder: src/main/resources/db/migration/canonical/
+-- Canonical SQL Server migration file: src/main/resources/db/migration/canonical/V1__create_exhibition_table.sql
+-- Local/H2-compatible migrations for development are under db/migration/active/
 
-CREATE TABLE exhibition (
-    exhibition_id VARCHAR(255) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description VARCHAR(MAX),
-    start_date DATE,
-    end_date DATE,
-    location VARCHAR(255),
-    status VARCHAR(100)
-);

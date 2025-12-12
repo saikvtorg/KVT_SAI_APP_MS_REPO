@@ -1,12 +1,5 @@
--- Flyway migration (dev): create exhibition table
-
-CREATE TABLE exhibition (
-    exhibition_id VARCHAR(100) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description VARCHAR(2000),
-    start_date DATE,
-    end_date DATE,
-    location VARCHAR(255),
-    status VARCHAR(50)
-);
+-- Duplicate (dev-only) migration file replaced with pointer to canonical migrations
+-- This file was intentionally emptied to avoid packaging duplicate migrations.
+-- Use the canonical migrations under src/main/resources/db/migration/
+-- See README.md for migration/run instructions
 

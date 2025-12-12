@@ -1,20 +1,12 @@
-name: Build, Migrate and Deploy to Azure Web App (azure deploy)
+name: Build and deploy to Azure Web App
 
 on:
   push:
     branches:
       - main
 
-env:
-  # Replace with your Azure Web App name
-  AZURE_WEBAPP_NAME: saikvtapp
-  # Defaults for SQL Server connection (override in workflow if needed)
-  AZ_SQL_SERVER_HOST: sai-sqlserver.database.windows.net
-  AZ_SQL_DB_NAME: saikvtdb
-  AZ_SQL_USER: sai-admin@sai-sqlserver
-
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,84 +17,32 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: '17'
 
       - name: Build with Maven
         run: mvn -B -DskipTests package
 
-      - name: Upload artifact for deployment job
+      - name: Upload artifact (JAR)
         uses: actions/upload-artifact@v4
         with:
-          name: java-app-jar
+          name: app-jar
           path: target/*.jar
 
-  migrate:
-    runs-on: ubuntu-latest
-    needs: build
-    # NOTE: job-level `if` cannot reference secrets; use an early step to skip when the secret is set.
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Check if CI migrations should be skipped
-        run: |
-          if [ "${{ secrets.SKIP_CI_MIGRATIONS }}" = "true" ]; then
-            echo "SKIP_CI_MIGRATIONS=true -> skipping CI migrations"
-            exit 0
-          fi
-
-      - name: Install prerequisites for sqlcmd
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y curl apt-transport-https gnupg
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
-          sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools unixodbc-dev
-          echo "::add-path::/opt/mssql-tools/bin" >> $GITHUB_ENV
-          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> $GITHUB_PATH
-
-      - name: Run SQL migrations (V1 then V2)
-        env:
-          AZ_SQL_SERVER_HOST: ${{ env.AZ_SQL_SERVER_HOST }}
-          AZ_SQL_DB_NAME: ${{ env.AZ_SQL_DB_NAME }}
-          AZ_SQL_USER: ${{ env.AZ_SQL_USER }}
-          AZ_SQL_SERVER_PASSWORD: ${{ secrets.AZ_SQL_SERVER_PASSWORD }}
-        run: |
-          set -e
-          SQLCMD="/opt/mssql-tools/bin/sqlcmd -S $AZ_SQL_SERVER_HOST -U $AZ_SQL_USER -P \"$AZ_SQL_SERVER_PASSWORD\" -d $AZ_SQL_DB_NAME -N"
-          echo "Running V1 migration"
-          $SQLCMD -i src/main/resources/db/migration/V1__create_exhibition_table.sql
-          echo "Running V2 migration"
-          $SQLCMD -i src/main/resources/db/migration/V2__create_module_stall_poster_tables.sql
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [build, migrate]
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
+      - name: Deploy to Azure WebApp
+        uses: Azure/webapps-deploy@v2
         with:
-          name: java-app-jar
-
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: '*.jar'
+          package: target/*.jar
 
-      - name: Configure AZ_SQL_SERVER_PASSWORD App Setting (publish-profile)
-        uses: azure/webapps-deploy@v2
+      - name: (Optional) Set AZ_SQL_SERVER_PASSWORD app setting
+        if: ${{ secrets.AZ_SQL_SERVER_PASSWORD != '' }}
+        uses: azure/CLI@v1
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          enable-oryx-build: false
-          action: 'config'
-          configuration-settings: |
-            AZ_SQL_SERVER_PASSWORD=${{ secrets.AZ_SQL_SERVER_PASSWORD }}
+          inlineScript: |
+            az webapp config appsettings set --name ${{ secrets.AZURE_WEBAPP_NAME }} --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --settings AZ_SQL_SERVER_PASSWORD="${{ secrets.AZ_SQL_SERVER_PASSWORD }}"
 
 # Notes:
-# - Create repository secrets: AZURE_WEBAPP_PUBLISH_PROFILE and AZ_SQL_SERVER_PASSWORD.
-# - To skip CI migrations (e.g., when your DB isn't reachable from GitHub runners), set the secret SKIP_CI_MIGRATIONS to 'true'.
-# - Ensure your Azure SQL firewall allows connections from the GitHub Actions runner, or run migrations from a runner inside your network/VNet.
+# - Requires repository secrets: AZURE_WEBAPP_PUBLISH_PROFILE, AZURE_WEBAPP_NAME, AZURE_RESOURCE_GROUP, AZ_SQL_SERVER_PASSWORD (optional)
+# - For production credential management, consider Azure Key Vault and Managed Identity instead of storing DB passwords in App Settings.
+

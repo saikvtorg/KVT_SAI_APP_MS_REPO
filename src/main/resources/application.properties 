@@ -1,3 +1,8 @@
+# THIS FILE IS A DUPLICATE WITH A TRAILING SPACE IN THE FILENAME
+# Please delete or rename this file. The canonical settings live in
+# src/main/resources/application.properties (no trailing space).
+# Kept to avoid accidental deletion by automation.
+
 # Server configuration
 server.port=8080
 # Springdoc OpenAPI configuration
@@ -8,4 +13,3 @@ springdoc.api-docs.path=/v3/api-docs
 management.endpoints.web.exposure.include=health,info
 # Show health details (set to 'when_authorized' or 'never' in production)
 management.endpoint.health.show-details=always
-
