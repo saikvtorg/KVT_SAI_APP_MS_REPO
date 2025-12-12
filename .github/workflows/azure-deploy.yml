@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch: {}
 
 jobs:
   build-and-deploy:
@@ -45,4 +51,3 @@ jobs:
 # Notes:
 # - Requires repository secrets: AZURE_WEBAPP_PUBLISH_PROFILE, AZURE_WEBAPP_NAME, AZURE_RESOURCE_GROUP, AZ_SQL_SERVER_PASSWORD (optional)
 # - For production credential management, consider Azure Key Vault and Managed Identity instead of storing DB passwords in App Settings.
-
