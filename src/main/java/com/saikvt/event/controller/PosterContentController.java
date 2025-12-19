@@ -4,10 +4,13 @@ import com.saikvt.event.entity.PosterContent;
 import com.saikvt.event.service.PosterContentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +18,8 @@ import java.util.Optional;
 @RequestMapping("/api/stalls/{stallId}/contents")
 @Tag(name = "Poster Content", description = "APIs to manage poster content")
 public class PosterContentController {
+
+    private static final Logger log = LoggerFactory.getLogger(PosterContentController.class);
 
     private final PosterContentService posterContentService;
 
@@ -32,8 +37,16 @@ public class PosterContentController {
     @GetMapping
     @Operation(summary = "Get contents for stall")
     public ResponseEntity<List<PosterContent>> getContents(@PathVariable String stallId) {
-        List<PosterContent> list = posterContentService.getContentsForStall(stallId);
-        return ResponseEntity.ok(list);
+        try {
+            List<PosterContent> list = posterContentService.getContentsForStall(stallId);
+            if (list == null || list.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+            return ResponseEntity.ok(list);
+        } catch (Exception ex) {
+            log.error("Error while fetching poster contents for stall {}", stallId, ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        }
     }
 
     @GetMapping("/{contentId}")

@@ -4,10 +4,13 @@ import com.saikvt.event.entity.Stall;
 import com.saikvt.event.service.StallService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +18,8 @@ import java.util.Optional;
 @RequestMapping("/api/modules/{moduleId}/stalls")
 @Tag(name = "Stalls", description = "APIs to manage stalls")
 public class StallController {
+
+    private static final Logger log = LoggerFactory.getLogger(StallController.class);
 
     private final StallService stallService;
 
@@ -32,8 +37,16 @@ public class StallController {
     @GetMapping
     @Operation(summary = "Get stalls for module")
     public ResponseEntity<List<Stall>> getStalls(@PathVariable String moduleId) {
-        List<Stall> list = stallService.getStallsForModule(moduleId);
-        return ResponseEntity.ok(list);
+        try {
+            List<Stall> list = stallService.getStallsForModule(moduleId);
+            if (list == null || list.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+            return ResponseEntity.ok(list);
+        } catch (Exception ex) {
+            log.error("Error while fetching stalls for module {}", moduleId, ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        }
     }
 
     @GetMapping("/{stallId}")
@@ -43,4 +56,3 @@ public class StallController {
         return s.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
-

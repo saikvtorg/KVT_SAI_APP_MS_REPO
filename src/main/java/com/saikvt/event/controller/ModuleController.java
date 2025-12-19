@@ -4,10 +4,13 @@ import com.saikvt.event.entity.Module;
 import com.saikvt.event.service.ModuleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +18,8 @@ import java.util.Optional;
 @RequestMapping("/api/exhibitions/{exhibitionId}/modules")
 @Tag(name = "Module", description = "APIs to manage modules")
 public class ModuleController {
+
+    private static final Logger log = LoggerFactory.getLogger(ModuleController.class);
 
     private final ModuleService moduleService;
 
@@ -32,8 +37,16 @@ public class ModuleController {
     @GetMapping
     @Operation(summary = "Get modules for exhibition")
     public ResponseEntity<List<Module>> getModules(@PathVariable String exhibitionId) {
-        List<Module> list = moduleService.getModulesForExhibition(exhibitionId);
-        return ResponseEntity.ok(list);
+        try {
+            List<Module> list = moduleService.getModulesForExhibition(exhibitionId);
+            if (list == null || list.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+            return ResponseEntity.ok(list);
+        } catch (Exception ex) {
+            log.error("Error while fetching modules for exhibition {}", exhibitionId, ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        }
     }
 
     @GetMapping("/{moduleId}")
@@ -47,6 +60,15 @@ public class ModuleController {
     @GetMapping(path = "/api/modules")
     @Operation(summary = "Get all modules", description = "Returns list of all modules across exhibitions")
     public ResponseEntity<List<Module>> listAllModulesGlobal() {
-        return ResponseEntity.ok(moduleService.listAll());
+        try {
+            List<Module> list = moduleService.listAll();
+            if (list == null || list.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+            return ResponseEntity.ok(list);
+        } catch (Exception ex) {
+            log.error("Error while fetching all modules", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        }
     }
 }

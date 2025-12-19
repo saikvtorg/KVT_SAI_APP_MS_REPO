@@ -4,14 +4,19 @@ import com.saikvt.event.entity.Module;
 import com.saikvt.event.entity.Stall;
 import com.saikvt.event.repository.ModuleRepository;
 import com.saikvt.event.repository.StallRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class StallService {
+
+    private static final Logger log = LoggerFactory.getLogger(StallService.class);
 
     private final StallRepository stallRepository;
     private final ModuleRepository moduleRepository;
@@ -35,7 +40,12 @@ public class StallService {
     }
 
     public List<Stall> getStallsForModule(String moduleId) {
-        return stallRepository.findByModule_ModuleId(moduleId);
+        try {
+            List<Stall> all = stallRepository.findByModule_ModuleId(moduleId);
+            return all == null ? Collections.emptyList() : all;
+        } catch (Exception ex) {
+            log.error("Error fetching stalls for module {}", moduleId, ex);
+            return Collections.emptyList();
+        }
     }
 }
-

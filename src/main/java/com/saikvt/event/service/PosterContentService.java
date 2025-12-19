@@ -4,14 +4,19 @@ import com.saikvt.event.entity.PosterContent;
 import com.saikvt.event.entity.Stall;
 import com.saikvt.event.repository.PosterContentRepository;
 import com.saikvt.event.repository.StallRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class PosterContentService {
+
+    private static final Logger log = LoggerFactory.getLogger(PosterContentService.class);
 
     private final PosterContentRepository posterContentRepository;
     private final StallRepository stallRepository;
@@ -35,7 +40,12 @@ public class PosterContentService {
     }
 
     public List<PosterContent> getContentsForStall(String stallId) {
-        return posterContentRepository.findByStall_StallId(stallId);
+        try {
+            List<PosterContent> all = posterContentRepository.findByStall_StallId(stallId);
+            return all == null ? Collections.emptyList() : all;
+        } catch (Exception ex) {
+            log.error("Error fetching poster contents for stall {}", stallId, ex);
+            return Collections.emptyList();
+        }
     }
 }
-

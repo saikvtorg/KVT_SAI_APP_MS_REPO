@@ -2,10 +2,13 @@ package com.saikvt.event.controller;
 
 import com.saikvt.event.entity.Exhibition;
 import com.saikvt.event.service.ExhibitionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +22,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @RequestMapping("/api/exhibitions")
 @Tag(name = "Exhibition", description = "APIs to manage exhibitions")
 public class ExhibitionController {
+
+    private static final Logger log = LoggerFactory.getLogger(ExhibitionController.class);
 
     private final ExhibitionService exhibitionService;
 
@@ -41,7 +46,16 @@ public class ExhibitionController {
     @GetMapping
     @Operation(summary = "Get all exhibitions", description = "Returns list of all exhibitions")
     public ResponseEntity<java.util.List<Exhibition>> listAllExhibitions() {
-        return ResponseEntity.ok(exhibitionService.listAll());
+        try {
+            java.util.List<Exhibition> list = exhibitionService.listAll();
+            if (list == null || list.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+            return ResponseEntity.ok(list);
+        } catch (Exception ex) {
+            log.error("Error while fetching exhibitions", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        }
     }
 
     @PostMapping

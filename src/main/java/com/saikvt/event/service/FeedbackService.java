@@ -2,14 +2,19 @@ package com.saikvt.event.service;
 
 import com.saikvt.event.entity.Feedback;
 import com.saikvt.event.repository.FeedbackRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
 @Transactional
 public class FeedbackService {
+    private static final Logger log = LoggerFactory.getLogger(FeedbackService.class);
+
     private final FeedbackRepository repo;
 
     public FeedbackService(FeedbackRepository repo) {
@@ -39,14 +44,32 @@ public class FeedbackService {
     }
 
     public List<Feedback> listByExhibition(String exhibitionId) {
-        return repo.findByExhibitionId(exhibitionId);
+        try {
+            List<Feedback> all = repo.findByExhibitionId(exhibitionId);
+            return all == null ? Collections.emptyList() : all;
+        } catch (Exception ex) {
+            log.error("Error fetching feedbacks for exhibition {}", exhibitionId, ex);
+            return Collections.emptyList();
+        }
     }
 
     public List<Feedback> listByUser(String userId) {
-        return repo.findByUserId(userId);
+        try {
+            List<Feedback> all = repo.findByUserId(userId);
+            return all == null ? Collections.emptyList() : all;
+        } catch (Exception ex) {
+            log.error("Error fetching feedbacks for user {}", userId, ex);
+            return Collections.emptyList();
+        }
     }
 
     public List<Feedback> listAll() {
-        return repo.findAll();
+        try {
+            List<Feedback> all = repo.findAll();
+            return all == null ? Collections.emptyList() : all;
+        } catch (Exception ex) {
+            log.error("Error fetching all feedbacks", ex);
+            return Collections.emptyList();
+        }
     }
 }
