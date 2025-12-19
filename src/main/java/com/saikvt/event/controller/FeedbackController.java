@@ -31,6 +31,11 @@ public class FeedbackController {
         return ResponseEntity.ok(f);
     }
 
+    @GetMapping
+    public List<Feedback> listAll() {
+        return service.listAll();
+    }
+
     @GetMapping("/exhibition/{exhibitionId}")
     public List<Feedback> listByExhibition(@PathVariable String exhibitionId) {
         return service.listByExhibition(exhibitionId);
@@ -57,4 +62,3 @@ public class FeedbackController {
         return ResponseEntity.noContent().build();
     }
 }
-

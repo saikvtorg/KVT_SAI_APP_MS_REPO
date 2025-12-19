@@ -28,7 +28,7 @@ public class Exhibition {
     @Column(name = "status")
     private String status;
 
-    @OneToMany(mappedBy = "exhibition", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "exhibition")
     private List<Module> modules;
 
     public Exhibition() {}

@@ -47,7 +47,13 @@ public class ExhibitionController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Exhibition payload", required = true,
             content = @Content(schema = @Schema(implementation = Exhibition.class)))
     public ResponseEntity<Exhibition> createExhibition(@RequestBody Exhibition exhibition) {
+        // Ignore any modules included in the incoming payload. Modules should be created separately using the modules API with the exhibition id.
+        exhibition.setModules(null);
         Exhibition saved = exhibitionService.createExhibition(exhibition);
+        // Ensure we return an empty modules array rather than null
+        if (saved.getModules() == null) {
+            saved.setModules(new java.util.ArrayList<>());
+        }
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 }

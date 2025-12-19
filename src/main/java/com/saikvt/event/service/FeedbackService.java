@@ -45,5 +45,8 @@ public class FeedbackService {
     public List<Feedback> listByUser(String userId) {
         return repo.findByUserId(userId);
     }
-}
 
+    public List<Feedback> listAll() {
+        return repo.findAll();
+    }
+}
