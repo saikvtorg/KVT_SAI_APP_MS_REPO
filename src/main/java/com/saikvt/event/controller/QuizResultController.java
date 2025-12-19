@@ -2,6 +2,7 @@ package com.saikvt.event.controller;
 
 import com.saikvt.event.entity.QuizResult;
 import com.saikvt.event.service.QuizResultService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/quiz-results")
+@Tag(name = "Quiz Result", description = "APIs to manage quiz results")
 public class QuizResultController {
 
     private final QuizResultService service;
@@ -57,4 +59,3 @@ public class QuizResultController {
         return ResponseEntity.noContent().build();
     }
 }
-

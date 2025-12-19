@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/exhibitions/{exhibitionId}/modules")
-@Tag(name = "Modules", description = "APIs to manage modules")
+@Tag(name = "Module", description = "APIs to manage modules")
 public class ModuleController {
 
     private final ModuleService moduleService;

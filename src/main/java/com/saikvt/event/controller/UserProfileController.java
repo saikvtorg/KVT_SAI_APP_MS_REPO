@@ -2,6 +2,7 @@ package com.saikvt.event.controller;
 
 import com.saikvt.event.entity.UserProfile;
 import com.saikvt.event.service.UserProfileService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
+@Tag(name = "User Profile", description = "APIs to manage user profiles")
 public class UserProfileController {
 
     private final UserProfileService service;
@@ -48,4 +50,3 @@ public class UserProfileController {
         return ResponseEntity.noContent().build();
     }
 }
-

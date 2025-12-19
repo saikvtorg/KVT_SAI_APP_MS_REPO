@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @RestController
 @RequestMapping("/api/exhibitions")
-@Tag(name = "Exhibitions", description = "APIs to manage exhibitions")
+@Tag(name = "Exhibition", description = "APIs to manage exhibitions")
 public class ExhibitionController {
 
     private final ExhibitionService exhibitionService;

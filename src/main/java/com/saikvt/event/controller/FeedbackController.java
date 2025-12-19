@@ -2,6 +2,7 @@ package com.saikvt.event.controller;
 
 import com.saikvt.event.entity.Feedback;
 import com.saikvt.event.service.FeedbackService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/feedbacks")
+@Tag(name = "Feedback", description = "APIs to manage feedbacks")
 public class FeedbackController {
 
     private final FeedbackService service;

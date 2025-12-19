@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/stalls/{stallId}/contents")
-@Tag(name = "PosterContent", description = "APIs to manage poster content")
+@Tag(name = "Poster Content", description = "APIs to manage poster content")
 public class PosterContentController {
 
     private final PosterContentService posterContentService;
@@ -43,4 +43,3 @@ public class PosterContentController {
         return p.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
-
