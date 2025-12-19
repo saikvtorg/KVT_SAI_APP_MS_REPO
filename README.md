@@ -25,7 +25,7 @@ export AZ_SQL_SERVER_PASSWORD='your-db-password'
 # build (driver is included in pom)
 mvn -DskipTests package
 
-# run with azure profile (uses src/main/resources/application-azure.properties)
+# run with azure profile (uses src/main/resources/application.properties)
 java -jar target/exhibition-management-system-0.0.1-SNAPSHOT.jar --spring.profiles.active=azure
 ```
 
