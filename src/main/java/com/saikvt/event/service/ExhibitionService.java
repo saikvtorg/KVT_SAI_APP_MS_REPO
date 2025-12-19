@@ -4,6 +4,7 @@ import com.saikvt.event.entity.Exhibition;
 import com.saikvt.event.repository.ExhibitionRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,5 +30,8 @@ public class ExhibitionService {
     public Optional<Exhibition> getExhibitionById(String id) {
         return repository.findById(id);
     }
-}
 
+    public List<Exhibition> listAll() {
+        return repository.findAll();
+    }
+}

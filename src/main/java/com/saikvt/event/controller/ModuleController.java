@@ -4,10 +4,6 @@ import com.saikvt.event.entity.Module;
 import com.saikvt.event.service.ModuleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,5 +42,11 @@ public class ModuleController {
         Optional<Module> m = moduleService.getModuleById(moduleId);
         return m.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
-}
 
+    // New: Global endpoint to list all modules (absolute path overrides controller-level mapping)
+    @GetMapping(path = "/api/modules")
+    @Operation(summary = "Get all modules", description = "Returns list of all modules across exhibitions")
+    public ResponseEntity<List<Module>> listAllModulesGlobal() {
+        return ResponseEntity.ok(moduleService.listAll());
+    }
+}

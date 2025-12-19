@@ -38,6 +38,12 @@ public class ExhibitionController {
         return exOpt.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping
+    @Operation(summary = "Get all exhibitions", description = "Returns list of all exhibitions")
+    public ResponseEntity<java.util.List<Exhibition>> listAllExhibitions() {
+        return ResponseEntity.ok(exhibitionService.listAll());
+    }
+
     @PostMapping
     @Operation(summary = "Create exhibition", description = "Accepts an Exhibition JSON and persists it to the DB")
     @ApiResponses(value = {

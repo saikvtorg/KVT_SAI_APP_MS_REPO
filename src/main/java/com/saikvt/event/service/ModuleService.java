@@ -4,7 +4,9 @@ import com.saikvt.event.entity.Module;
 import com.saikvt.event.entity.Exhibition;
 import com.saikvt.event.repository.ModuleRepository;
 import com.saikvt.event.repository.ExhibitionRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +28,10 @@ public class ModuleService {
             module.setModuleId("mod-" + UUID.randomUUID().toString());
         }
         Optional<Exhibition> ex = exhibitionRepository.findById(exhibitionId);
-        ex.ifPresent(module::setExhibition);
+        if (ex.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Exhibition not found: " + exhibitionId);
+        }
+        module.setExhibition(ex.get());
         return moduleRepository.save(module);
     }
 
@@ -37,5 +42,8 @@ public class ModuleService {
     public List<Module> getModulesForExhibition(String exhibitionId) {
         return moduleRepository.findByExhibition_ExhibitionId(exhibitionId);
     }
-}
 
+    public List<Module> listAll() {
+        return moduleRepository.findAll();
+    }
+}
