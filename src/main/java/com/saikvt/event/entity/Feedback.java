@@ -18,6 +18,9 @@ public class Feedback {
     @Column(name = "exhibition_id", length = 255)
     private String exhibitionId;
 
+    @Column(name = "module_id", length = 255)
+    private String moduleId;
+
     @Column(name = "comments", columnDefinition = "VARCHAR(2000)")
     private String comments;
 
@@ -39,6 +42,8 @@ public class Feedback {
     public void setUserId(String userId) { this.userId = userId; }
     public String getExhibitionId() { return exhibitionId; }
     public void setExhibitionId(String exhibitionId) { this.exhibitionId = exhibitionId; }
+    public String getModuleId() { return moduleId; }
+    public void setModuleId(String moduleId) { this.moduleId = moduleId; }
     public String getComments() { return comments; }
     public void setComments(String comments) { this.comments = comments; }
     public Integer getRating() { return rating; }
@@ -46,4 +51,3 @@ public class Feedback {
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }
-

@@ -63,6 +63,16 @@ public class FeedbackService {
         }
     }
 
+    public List<Feedback> listByModule(String moduleId) {
+        try {
+            List<Feedback> all = repo.findByModuleId(moduleId);
+            return all == null ? Collections.emptyList() : all;
+        } catch (Exception ex) {
+            log.error("Error fetching feedbacks for module {}", moduleId, ex);
+            return Collections.emptyList();
+        }
+    }
+
     public List<Feedback> listAll() {
         try {
             List<Feedback> all = repo.findAll();

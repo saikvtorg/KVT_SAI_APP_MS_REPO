@@ -7,5 +7,5 @@ import java.util.List;
 public interface FeedbackRepository extends JpaRepository<Feedback, String> {
     List<Feedback> findByExhibitionId(String exhibitionId);
     List<Feedback> findByUserId(String userId);
+    List<Feedback> findByModuleId(String moduleId);
 }
-

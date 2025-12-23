@@ -81,6 +81,20 @@ public class FeedbackController {
         }
     }
 
+    @GetMapping("/module/{moduleId}")
+    public ResponseEntity<List<Feedback>> listByModule(@PathVariable String moduleId) {
+        try {
+            List<Feedback> list = service.listByModule(moduleId);
+            if (list == null || list.isEmpty()) {
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+            return ResponseEntity.ok(list);
+        } catch (Exception ex) {
+            log.error("Error while fetching feedbacks for module {}", moduleId, ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Collections.emptyList());
+        }
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<Feedback> update(@PathVariable String id, @RequestBody Feedback update) {
         try {
