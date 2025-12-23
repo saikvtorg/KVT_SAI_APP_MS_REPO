@@ -106,3 +106,87 @@ $SQLCMD -i src/main/resources/db/migration/canonical/V2__create_module_stall_pos
 - The repository now uses a single canonical Flyway migrations folder: `src/main/resources/db/migration/` (dev copies were removed to avoid duplication). Use those files for all environments.
 - For the `azure` profile, Flyway is disabled by default (see `application-azure.properties`) to avoid startup failures on some Azure SQL compatibility levels. Run migrations manually using `sqlcmd` or enable Flyway after verifying compatibility in your target DB.
 - For production, prefer Azure Key Vault + Managed Identity for DB credentials instead of storing secrets in App Settings.
+
+## Health & testing
+
+This project exposes Spring Boot Actuator endpoints by default. Use the commands below to verify the application health and related endpoints locally or after deployment.
+
+Notes:
+
+- The app runs on port 8080 by default (see `server.port` in `application.properties`).
+- Actuator base path is `/actuator` by default.
+- Exposed endpoints (configured in application.properties): `health`, `info`, `metrics`.
+
+Local URLs (example)
+
+- Health: `http://localhost:8080/actuator/health`
+- Info: `http://localhost:8080/actuator/info`
+- Metrics: `http://localhost:8080/actuator/metrics`
+
+Quick curl checks (run from your shell)
+
+# Basic health check (shows status + details)
+
+```bash
+curl -i http://localhost:8080/actuator/health
+```
+
+# Pretty JSON (requires jq)
+
+```bash
+curl -s http://localhost:8080/actuator/health | jq
+```
+
+# Info
+
+```bash
+curl -s http://localhost:8080/actuator/info | jq
+```
+
+# Metrics (list available metrics)
+
+```bash
+curl -s http://localhost:8080/actuator/metrics | jq
+```
+
+CORS / preflight quick checks
+
+# Preflight (OPTIONS) request for POST
+
+```bash
+curl -i -X OPTIONS "http://localhost:8080/api/exhibitions" \
+  -H "Origin: http://localhost:3000" \
+  -H "Access-Control-Request-Method: POST"
+```
+
+# Actual request with Origin header
+
+```bash
+curl -i "http://localhost:8080/actuator/health" -H "Origin: http://localhost:3000"
+```
+
+Azure / deployed app
+
+# Replace <app> with your app name (or use your app's hostname)
+
+```bash
+curl -i https://<app>.azurewebsites.net/actuator/health
+```
+
+# Tail App Service logs (requires az cli and login)
+
+```bash
+az webapp log tail --resource-group <RESOURCE_GROUP> --name <APP_NAME>
+```
+
+Troubleshooting
+
+- 404 on `/actuator/health`: ensure the app is running and `management.endpoints.web.exposure.include` contains `health` (see `application.properties`).
+- 401/403 on actuator endpoints: Spring Security may be enabled and protecting actuator endpoints — either unlock `/actuator/health` in security config or supply credentials.
+- If you need different base path, set `management.endpoints.web.base-path=/management` and use `/management/health`.
+
+Security note
+
+- For production, prefer restricting actuator endpoints or protecting them with authentication. Consider allowing anonymous access only to the health endpoint and protecting other actuator endpoints.
+
+End of Health & testing
