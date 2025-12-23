@@ -1,5 +1,6 @@
 package com.saikvt.event.controller;
 
+import com.saikvt.event.dto.ModuleRequest;
 import com.saikvt.event.entity.Module;
 import com.saikvt.event.service.ModuleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,8 +30,19 @@ public class ModuleController {
 
     @PostMapping
     @Operation(summary = "Create module for exhibition")
-    public ResponseEntity<Module> createModule(@PathVariable String exhibitionId, @RequestBody Module module) {
-        Module saved = moduleService.createModule(exhibitionId, module);
+    public ResponseEntity<Module> createModule(@PathVariable String exhibitionId, @RequestBody ModuleRequest req) {
+        Module module = new Module();
+        module.setModuleId(req.getModuleId());
+        module.setName(req.getName());
+        module.setDescription(req.getDescription());
+        module.setAssignedTeamId(req.getAssignedTeamId());
+        // Prefer exhibitionId from path; if request contains exhibitionId, it must match or will be ignored
+        String effectiveExh = exhibitionId;
+        if (req.getExhibitionId() != null && !req.getExhibitionId().isEmpty() && !req.getExhibitionId().equals(exhibitionId)) {
+            // ignore mismatch but log
+            log.warn("Request exhibitionId {} does not match path param {}; using path param", req.getExhibitionId(), exhibitionId);
+        }
+        Module saved = moduleService.createModule(effectiveExh, module);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 

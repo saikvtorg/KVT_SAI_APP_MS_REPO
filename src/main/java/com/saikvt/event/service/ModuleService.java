@@ -32,6 +32,7 @@ public class ModuleService {
         if (module.getModuleId() == null || module.getModuleId().isEmpty()) {
             module.setModuleId("mod-" + UUID.randomUUID().toString());
         }
+        // If exhibitionId provided, ensure exhibition exists and set relation
         Optional<Exhibition> ex = exhibitionRepository.findById(exhibitionId);
         if (ex.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Exhibition not found: " + exhibitionId);
