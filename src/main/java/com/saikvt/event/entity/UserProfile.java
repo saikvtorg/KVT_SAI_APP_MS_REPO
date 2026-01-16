@@ -32,6 +32,12 @@ public class UserProfile {
     @Column(name = "address", columnDefinition = "VARCHAR(2000)")
     private String address;
 
+    @Column(name = "gender")
+    private String gender;
+
+    @Column(name = "password_hash")
+    private String password;
+
     public UserProfile() {
         // generate UUID when created if not provided
         this.userId = UUID.randomUUID().toString();
@@ -92,5 +98,21 @@ public class UserProfile {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

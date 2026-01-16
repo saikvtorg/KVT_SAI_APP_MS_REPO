@@ -5,12 +5,15 @@ import com.saikvt.event.exception.ConflictException;
 import com.saikvt.event.repository.UserProfileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Service
 @Transactional
@@ -19,6 +22,12 @@ public class UserProfileService {
     private static final Logger log = LoggerFactory.getLogger(UserProfileService.class);
 
     private final UserProfileRepository repo;
+
+    private static final Pattern LETTER = Pattern.compile(".*[A-Za-z].*");
+    private static final Pattern DIGIT = Pattern.compile(".*\\d.*");
+    private static final Pattern SPECIAL = Pattern.compile(".*[^A-Za-z0-9].*");
+
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public UserProfileService(UserProfileRepository repo) {
         this.repo = repo;
@@ -33,6 +42,15 @@ public class UserProfileService {
         // if id is null generate one
         if (profile.getUserId() == null || profile.getUserId().isEmpty()) {
             profile.setUserId(java.util.UUID.randomUUID().toString());
+        }
+
+        // Password validation if provided
+        if (profile.getPassword() != null && !profile.getPassword().isBlank()) {
+            if (!isValidPassword(profile.getPassword())) {
+                throw new IllegalArgumentException("Password must be at least 8 characters and include letters, numbers and a special character");
+            }
+            // encode password before persisting
+            profile.setPassword(passwordEncoder.encode(profile.getPassword()));
         }
 
         // Check uniqueness of email and phone
@@ -88,8 +106,19 @@ public class UserProfileService {
             existing.setPhone(update.getPhone());
         }
 
+        // Password validation if provided
+        if (update.getPassword() != null && !update.getPassword().isBlank()) {
+            if (!isValidPassword(update.getPassword())) {
+                throw new IllegalArgumentException("Password must be at least 8 characters and include letters, numbers and a special character");
+            }
+            existing.setPassword(passwordEncoder.encode(update.getPassword()));
+        }
+
         existing.setFullName(update.getFullName());
         existing.setPreferredLanguage(update.getPreferredLanguage());
+        existing.setCountry(update.getCountry());
+        existing.setAddress(update.getAddress());
+        existing.setGender(update.getGender());
         return repo.save(existing);
     }
 
@@ -110,5 +139,14 @@ public class UserProfileService {
     // Backwards-compatible alias used by some controller calls / analyzers
     public List<UserProfile> findByEmailAndPhone(String email, String phone) {
         return findByEmailAndOrPhone(email, phone);
+    }
+
+    private boolean isValidPassword(String pw) {
+        if (pw == null) return false;
+        if (pw.length() < 8) return false;
+        if (!LETTER.matcher(pw).matches()) return false;
+        if (!DIGIT.matcher(pw).matches()) return false;
+        if (!SPECIAL.matcher(pw).matches()) return false;
+        return true;
     }
 }

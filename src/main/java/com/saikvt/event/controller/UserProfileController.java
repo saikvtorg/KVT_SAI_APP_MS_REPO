@@ -37,6 +37,8 @@ public class UserProfileController {
             return ResponseEntity.created(URI.create("/api/users/" + created.getUserId())).body(created);
         } catch (ConflictException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -90,6 +92,8 @@ public class UserProfileController {
             return ResponseEntity.ok(updated);
         } catch (ConflictException ex) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
         } catch (RuntimeException ex) {
             return ResponseEntity.notFound().build();
         }
