@@ -1,43 +1,22 @@
-package com.saikvt.event.entity;
+package com.saikvt.event.dto;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.Instant;
-import java.util.UUID;
 
-@Entity
-@Table(name = "user_feedback")
-public class Feedback {
-
-    @Id
-    @Column(name = "feedback_id", length = 36)
+@Schema(description = "Feedback response with parsed questions")
+public class FeedbackResponse {
     private String feedbackId;
-
-    @Column(name = "user_id", length = 36)
     private String userId;
-
-    @Column(name = "exhibition_id", length = 255)
     private String exhibitionId;
-
-    @Column(name = "module_id", length = 255)
     private String moduleId;
-
-    @Column(name = "comments", columnDefinition = "VARCHAR(2000)")
     private String comments;
-
-    @Column(name = "rating")
     private Integer rating;
-
-    @Column(name = "created_at")
     private Instant createdAt;
+    private JsonNode questions; // parsed JSON
 
-    // store questions/options as JSON/text
-    @Column(name = "questions", columnDefinition = "VARCHAR(MAX)")
-    private String questions;
-
-    public Feedback() {
-        this.feedbackId = UUID.randomUUID().toString();
-        this.createdAt = Instant.now();
-    }
+    public FeedbackResponse() {}
 
     // getters and setters
     public String getFeedbackId() { return feedbackId; }
@@ -54,6 +33,7 @@ public class Feedback {
     public void setRating(Integer rating) { this.rating = rating; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
-    public String getQuestions() { return questions; }
-    public void setQuestions(String questions) { this.questions = questions; }
+    public JsonNode getQuestions() { return questions; }
+    public void setQuestions(JsonNode questions) { this.questions = questions; }
 }
+
