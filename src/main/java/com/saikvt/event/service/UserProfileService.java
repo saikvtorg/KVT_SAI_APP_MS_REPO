@@ -57,4 +57,14 @@ public class UserProfileService {
     public void delete(String id) {
         repo.deleteById(id);
     }
+
+    public List<UserProfile> findByEmailAndOrPhone(String email, String phone) {
+        if (email != null && phone != null) {
+            return repo.findByEmailAndPhone(email, phone);
+        }
+        if (email != null) {
+            return repo.findByEmail(email);
+        }
+        return repo.findByPhone(phone);
+    }
 }

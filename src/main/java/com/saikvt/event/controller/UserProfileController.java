@@ -52,6 +52,28 @@ public class UserProfileController {
         }
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<UserProfile>> getByEmailAndOrPhone(
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String phone) {
+
+        if ((email == null || email.isBlank()) &&
+                (phone == null || phone.isBlank())) {
+            return ResponseEntity.badRequest().body(Collections.emptyList());
+        }
+
+        try {
+            List<UserProfile> users = service.findByEmailAndOrPhone(email, phone);
+            return ResponseEntity.ok(
+                    users != null ? users : Collections.emptyList()
+            );
+        } catch (Exception ex) {
+            log.error("Error while fetching user by email/phone", ex);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.emptyList());
+        }
+    }
     @PutMapping("/{id}")
     public ResponseEntity<UserProfile> update(@PathVariable String id, @RequestBody UserProfile update) {
         try {
