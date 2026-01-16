@@ -1,6 +1,7 @@
 package com.saikvt.event.controller;
 
 import com.saikvt.event.entity.UserProfile;
+import com.saikvt.event.exception.ConflictException;
 import com.saikvt.event.service.UserProfileService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
@@ -28,8 +29,15 @@ public class UserProfileController {
 
     @PostMapping
     public ResponseEntity<UserProfile> create(@RequestBody UserProfile profile) {
-        UserProfile created = service.create(profile);
-        return ResponseEntity.created(URI.create("/api/users/" + created.getUserId())).body(created);
+        try {
+            if (profile == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            UserProfile created = service.create(profile);
+            return ResponseEntity.created(URI.create("/api/users/" + created.getUserId())).body(created);
+        } catch (ConflictException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 
     @GetMapping("/{id}")
@@ -63,7 +71,7 @@ public class UserProfileController {
         }
 
         try {
-            List<UserProfile> users = service.findByEmailAndOrPhone(email, phone);
+            List<UserProfile> users = service.findByEmailAndPhone(email, phone);
             return ResponseEntity.ok(
                     users != null ? users : Collections.emptyList()
             );
@@ -74,11 +82,14 @@ public class UserProfileController {
                     .body(Collections.emptyList());
         }
     }
+
     @PutMapping("/{id}")
     public ResponseEntity<UserProfile> update(@PathVariable String id, @RequestBody UserProfile update) {
         try {
             UserProfile updated = service.update(id, update);
             return ResponseEntity.ok(updated);
+        } catch (ConflictException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         } catch (RuntimeException ex) {
             return ResponseEntity.notFound().build();
         }
