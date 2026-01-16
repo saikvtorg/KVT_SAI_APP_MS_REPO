@@ -1,7 +1,13 @@
 package com.saikvt.event.controller;
 
+import com.saikvt.event.dto.LoginRequest;
 import com.saikvt.event.entity.UserProfile;
 import com.saikvt.event.repository.UserProfileRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -14,6 +20,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "Authentication endpoints")
 public class AuthController {
 
     private final UserProfileRepository userRepo;
@@ -23,11 +30,17 @@ public class AuthController {
         this.userRepo = userRepo;
     }
 
+    @Operation(summary = "Authenticate a user", description = "Authenticate a user by userId or email and password")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User logged in successfully"),
+            @ApiResponse(responseCode = "400", description = "Bad request - missing credentials"),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials")
+    })
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> body) {
-        String userId = body.get("userId");
-        String email = body.get("email");
-        String password = body.get("password");
+    public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginRequest login) {
+        String userId = login.getUserId();
+        String email = login.getEmail();
+        String password = login.getPassword();
 
         if ((userId == null || userId.isBlank()) && (email == null || email.isBlank())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "userId or email is required"));
