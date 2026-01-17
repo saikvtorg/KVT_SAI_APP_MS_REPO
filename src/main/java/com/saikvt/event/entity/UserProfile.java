@@ -40,6 +40,10 @@ public class UserProfile {
     @Column(name = "password_hash")
     private String password;
 
+    // new role column: 'admin' or 'normal' (default normal)
+    @Column(name = "role")
+    private String role = "normal";
+
     public UserProfile() {
         // generate UUID when created if not provided
         this.userId = UUID.randomUUID().toString();
@@ -116,5 +120,13 @@ public class UserProfile {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

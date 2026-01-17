@@ -89,6 +89,10 @@ public class AuthController {
         }
 
         // Login successful - return minimal response (no JWT implemented)
-        return ResponseEntity.ok(Map.of("userId", user.getUserId(), "success", true));
+        return ResponseEntity.ok(Map.of(
+                "userId", user.getUserId(),
+                "success", true,
+                "role", user.getRole()
+        ));
     }
 }
