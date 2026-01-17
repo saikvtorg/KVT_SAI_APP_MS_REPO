@@ -1,5 +1,6 @@
 package com.saikvt.event.controller;
 
+import com.saikvt.event.dto.ErrorResponse;
 import com.saikvt.event.entity.UserProfile;
 import com.saikvt.event.exception.ConflictException;
 import com.saikvt.event.service.UserProfileService;
@@ -28,17 +29,28 @@ public class UserProfileController {
     }
 
     @PostMapping
-    public ResponseEntity<UserProfile> create(@RequestBody UserProfile profile) {
+    public ResponseEntity<?> create(@RequestBody UserProfile profile) {
         try {
             if (profile == null) {
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.badRequest().body(new ErrorResponse("Request body is required"));
             }
             UserProfile created = service.create(profile);
             return ResponseEntity.created(URI.create("/api/users/" + created.getUserId())).body(created);
         } catch (ConflictException ex) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            String m = ex.getMessage() == null ? "Conflict" : ex.getMessage();
+            String lower = m.toLowerCase();
+            if (lower.contains("email")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("Duplicate", "Email already exists"));
+            } else if (lower.contains("phone")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("Duplicate", "Phone already exists"));
+            } else {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("Conflict", m));
+            }
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(new ErrorResponse("Invalid input", ex.getMessage()));
+        } catch (Exception ex) {
+            log.error("Unexpected error creating user profile", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("Internal server error"));
         }
     }
 
@@ -86,16 +98,27 @@ public class UserProfileController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserProfile> update(@PathVariable String id, @RequestBody UserProfile update) {
+    public ResponseEntity<?> update(@PathVariable String id, @RequestBody UserProfile update) {
         try {
             UserProfile updated = service.update(id, update);
             return ResponseEntity.ok(updated);
         } catch (ConflictException ex) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            String m = ex.getMessage() == null ? "Conflict" : ex.getMessage();
+            String lower = m.toLowerCase();
+            if (lower.contains("email")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("Duplicate", "Email already exists"));
+            } else if (lower.contains("phone")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("Duplicate", "Phone already exists"));
+            } else {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("Conflict", m));
+            }
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(new ErrorResponse("Invalid input", ex.getMessage()));
         } catch (RuntimeException ex) {
             return ResponseEntity.notFound().build();
+        } catch (Exception ex) {
+            log.error("Unexpected error updating user profile", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("Internal server error"));
         }
     }
 
