@@ -1,4 +1,5 @@
 package com.saikvt.event.entity;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.List;
@@ -9,6 +10,7 @@ public class User {
     @Id
     private String userId;
     private String email;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
     private String fullName;
     private String preferredLanguage;
