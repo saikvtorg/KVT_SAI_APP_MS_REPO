@@ -2,6 +2,7 @@ package com.saikvt.event.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "exhibition")
@@ -29,6 +30,7 @@ public class Exhibition {
     private String status;
 
     @OneToMany(mappedBy = "exhibition")
+    @JsonManagedReference
     private List<Module> modules;
 
     public Exhibition() {}

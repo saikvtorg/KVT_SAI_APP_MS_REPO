@@ -1,5 +1,6 @@
 package com.saikvt.event.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.util.List;
@@ -22,6 +23,7 @@ public class Module {
 
     @ManyToOne
     @JoinColumn(name = "exhibition_id")
+    @JsonBackReference
     private Exhibition exhibition;
 
     // Expose exhibitionId in JSON without duplicating DB mapping. Marked not insertable/updatable to avoid conflicts with the relationship.
