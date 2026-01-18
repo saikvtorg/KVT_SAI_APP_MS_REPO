@@ -44,27 +44,9 @@ jobs:
           name: jar
           path: target
 
-      - name: 'Login to Azure'
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: 'Set Azure Web App application settings (runtime)'
-        env:
-          AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME_PROD }}
-          AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
-          AZURE_SQL_SERVER: ${{ secrets.AZURE_SQL_SERVER }}
-          AZURE_SQL_DB: ${{ secrets.AZURE_SQL_DB }}
-          AZURE_SQL_USER: ${{ secrets.AZURE_SQL_USER }}
-          AZURE_SQL_PASSWORD: ${{ secrets.AZURE_SQL_PASSWORD }}
-        run: |
-          echo "Setting runtime application settings for $AZURE_WEBAPP_NAME in resource group $AZURE_RESOURCE_GROUP"
-          az webapp config appsettings set -g "$AZURE_RESOURCE_GROUP" -n "$AZURE_WEBAPP_NAME" --settings \
-            SPRING_PROFILES_ACTIVE=prod \
-            AZURE_SQL_SERVER="$AZURE_SQL_SERVER" \
-            AZURE_SQL_DB="$AZURE_SQL_DB" \
-            AZURE_SQL_USER="$AZURE_SQL_USER" \
-            AZURE_SQL_PASSWORD="$AZURE_SQL_PASSWORD"
+      # NOTE: App Service application settings are expected to be pre-configured in Azure.
+      # The workflow will not modify runtime app settings. Ensure SPRING_PROFILES_ACTIVE=prod and
+      # DB-related settings (AZURE_SQL_*) are set in the App Service configuration.
 
       - name: Deploy to Azure Web App using publish profile
         uses: Azure/webapps-deploy@v2
@@ -86,5 +68,5 @@ jobs:
       #       -Dflyway.password="$FLYWAY_PASSWORD" \
       #       -Dflyway.locations=filesystem:src/main/resources/db/migration/canonical
 
-    # You must configure the required secrets in the repository: AZURE_WEBAPP_NAME and AZURE_WEBAPP_PUBLISH_PROFILE
+    # You must configure the required secrets in the repository: AZURE_WEBAPP_NAME_PROD and AZURE_WEBAPP_PUBLISH_PROFILE_PROD
     # (and the Flyway/DB secrets if you enable migrations above).
