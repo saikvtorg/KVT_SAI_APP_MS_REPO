@@ -112,7 +112,7 @@ BEGIN
       exhibition_id VARCHAR(255),
       comments VARCHAR(MAX),
       rating INT,
-      created_at DATETIME2
+      created_at DATETIMEOFFSET(6)
   );
 END
 GO
@@ -127,7 +127,7 @@ BEGIN
       total_marks INT,
       percentage FLOAT,
       points INT,
-      taken_at DATETIME2
+      taken_at DATETIMEOFFSET(6)
   );
 END
 GO
@@ -382,4 +382,63 @@ BEGIN
   END
 END
 GO
+
+-- ========== Safe conversion: Convert existing DATETIME2 columns to DATETIMEOFFSET(6) if needed ==========
+-- This block is idempotent and will only run when the current column type is datetime2.
+-- It treats existing datetime2 values as UTC when assigning an offset. If your timestamps
+-- are in a different timezone, replace 'UTC' with the correct Windows timezone name.
+BEGIN TRY
+  BEGIN TRANSACTION;
+
+  -- Convert user_feedback.created_at if it's datetime2
+  IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.COLUMNS c
+    WHERE c.TABLE_SCHEMA = 'dbo' AND c.TABLE_NAME = 'user_feedback' AND c.COLUMN_NAME = 'created_at'
+      AND LOWER(c.DATA_TYPE) = 'datetime2'
+  )
+  BEGIN
+    PRINT 'Converting dbo.user_feedback.created_at from datetime2 to datetimeoffset(6)';
+    IF NOT EXISTS (
+      SELECT 1 FROM sys.columns WHERE Name = N'created_at_tmp' AND Object_ID = Object_ID(N'dbo.user_feedback')
+    )
+    BEGIN
+      ALTER TABLE dbo.user_feedback ADD created_at_tmp DATETIMEOFFSET(6);
+      -- Use dynamic SQL to avoid parser complaining about the newly added column at parse-time
+      EXEC('UPDATE dbo.user_feedback SET created_at_tmp = created_at AT TIME ZONE ''UTC''');
+      ALTER TABLE dbo.user_feedback DROP COLUMN created_at;
+      EXEC('EXEC sp_rename ''dbo.user_feedback.created_at_tmp'', ''created_at'', ''COLUMN''');
+    END
+  END
+
+  -- Convert user_quiz_result.taken_at if it's datetime2
+  IF EXISTS (
+    SELECT 1
+    FROM INFORMATION_SCHEMA.COLUMNS c
+    WHERE c.TABLE_SCHEMA = 'dbo' AND c.TABLE_NAME = 'user_quiz_result' AND c.COLUMN_NAME = 'taken_at'
+      AND LOWER(c.DATA_TYPE) = 'datetime2'
+  )
+  BEGIN
+    PRINT 'Converting dbo.user_quiz_result.taken_at from datetime2 to datetimeoffset(6)';
+    IF NOT EXISTS (
+      SELECT 1 FROM sys.columns WHERE Name = N'taken_at_tmp' AND Object_ID = Object_ID(N'dbo.user_quiz_result')
+    )
+    BEGIN
+      ALTER TABLE dbo.user_quiz_result ADD taken_at_tmp DATETIMEOFFSET(6);
+      EXEC('UPDATE dbo.user_quiz_result SET taken_at_tmp = taken_at AT TIME ZONE ''UTC''');
+      ALTER TABLE dbo.user_quiz_result DROP COLUMN taken_at;
+      EXEC('EXEC sp_rename ''dbo.user_quiz_result.taken_at_tmp'', ''taken_at'', ''COLUMN''');
+    END
+  END
+
+  COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+  ROLLBACK TRANSACTION;
+  DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE();
+  PRINT 'Error during datetime2 -> datetimeoffset conversion: ' + @ErrMsg;
+  THROW;
+END CATCH;
+GO
+
 -- End of combined migrations
