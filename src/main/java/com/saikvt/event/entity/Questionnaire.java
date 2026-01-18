@@ -1,17 +1,5 @@
 package com.saikvt.event.entity;
-import jakarta.persistence.*;
-import java.time.LocalDate;
-import java.util.List;
 
-@Entity
-public class Questionnaire {
-    @Id
-    private String questionnaireId;
-    private String name;
-    private String description;
-    private String status;
-
-    @OneToMany(mappedBy = "questionnaire", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Question> questions;
-    // Getters and Setters
-}
+// This file was intentionally removed from the codebase.
+// The original Questionnaire POJO has been deleted to prevent JPA/entity scanning.
+// If you need the original class, restore it from version control history.
