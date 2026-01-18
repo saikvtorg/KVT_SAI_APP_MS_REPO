@@ -382,6 +382,4 @@ BEGIN
   END
 END
 GO
-
 -- End of combined migrations
-
