@@ -106,12 +106,9 @@ public class UserProfileService {
             existing.setPhone(update.getPhone());
         }
 
-        // Password validation if provided
+        // Password should NOT be modified via this update endpoint.
         if (update.getPassword() != null && !update.getPassword().isBlank()) {
-            if (!isValidPassword(update.getPassword())) {
-                throw new IllegalArgumentException("Password must be at least 8 characters and include letters, numbers and a special character");
-            }
-            existing.setPassword(passwordEncoder.encode(update.getPassword()));
+            throw new IllegalArgumentException("Password cannot be changed via this endpoint. Use /api/users/reset-password to change password.");
         }
 
         existing.setFullName(update.getFullName());
@@ -139,6 +136,30 @@ public class UserProfileService {
     // Backwards-compatible alias used by some controller calls / analyzers
     public List<UserProfile> findByEmailAndPhone(String email, String phone) {
         return findByEmailAndOrPhone(email, phone);
+    }
+
+    public void resetPassword(String email, String phone, String newPassword) {
+        // Require both email and phone per stricter security requirement
+        if (email == null || email.isBlank() || phone == null || phone.isBlank()) {
+            throw new IllegalArgumentException("Both email and phone are required to reset password");
+        }
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new IllegalArgumentException("newPassword is required");
+        }
+        if (!isValidPassword(newPassword)) {
+            throw new IllegalArgumentException("Password must be at least 8 characters and include letters, numbers and a special character");
+        }
+
+        List<UserProfile> candidates;
+        candidates = repo.findByEmailAndPhone(email, phone);
+
+        if (candidates == null || candidates.isEmpty()) {
+            throw new RuntimeException("User not found for provided email/phone");
+        }
+        // choose first match
+        UserProfile user = candidates.get(0);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        repo.save(user);
     }
 
     private boolean isValidPassword(String pw) {

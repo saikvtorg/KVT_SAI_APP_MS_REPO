@@ -98,9 +98,23 @@ public class UserProfileController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable String id, @RequestBody UserProfile update) {
+    public ResponseEntity<?> update(@PathVariable String id, @RequestBody com.saikvt.event.dto.UserProfileUpdateRequest req) {
         try {
-            UserProfile updated = service.update(id, update);
+            if (req == null) {
+                return ResponseEntity.badRequest().body(new ErrorResponse("Invalid input", "Request body is required"));
+            }
+            // Map DTO to entity for update; do not allow password via this DTO
+            UserProfile upd = new UserProfile();
+            upd.setFullName(req.getFullName());
+            upd.setEmail(req.getEmail());
+            upd.setPhone(req.getPhone());
+            upd.setPreferredLanguage(req.getPreferredLanguage());
+            upd.setCountry(req.getCountry());
+            upd.setAddress(req.getAddress());
+            upd.setGender(req.getGender());
+            // role is intentionally not settable by normal users here; service.update will persist allowed fields only
+
+            UserProfile updated = service.update(id, upd);
             return ResponseEntity.ok(updated);
         } catch (ConflictException ex) {
             String m = ex.getMessage() == null ? "Conflict" : ex.getMessage();
@@ -115,9 +129,28 @@ public class UserProfileController {
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(new ErrorResponse("Invalid input", ex.getMessage()));
         } catch (RuntimeException ex) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Not found", ex.getMessage()));
         } catch (Exception ex) {
             log.error("Unexpected error updating user profile", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("Internal server error", ex.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody com.saikvt.event.dto.ResetPasswordRequest req) {
+        try {
+            // Require both email and phone for extra safety (per your requirement)
+            if (req == null || req.getEmail() == null || req.getEmail().isBlank() || req.getPhone() == null || req.getPhone().isBlank()) {
+                return ResponseEntity.badRequest().body(new ErrorResponse("Invalid input", "email and phone are required"));
+            }
+            service.resetPassword(req.getEmail(), req.getPhone(), req.getNewPassword());
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("Invalid input", ex.getMessage()));
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Not found", ex.getMessage()));
+        } catch (Exception ex) {
+            log.error("Unexpected error resetting password", ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("Internal server error"));
         }
     }

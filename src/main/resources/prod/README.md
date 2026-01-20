@@ -279,3 +279,45 @@ If you'd like, I can also:
 - (C) add a short verification script that runs the verification queries automatically after migration and reports a concise pass/fail summary.
 
 Tell me which of B/C you'd like next, or confirm you want me to proceed with anything else (e.g., pushing this README into your `prod` branch).
+
+---
+
+## One-off conversion: DATETIME2 -> DATETIMEOFFSET(6)
+
+If you previously ran canonical migrations and the `created_at` / `taken_at` columns are still `datetime2`, run the idempotent conversion script included in this repo:
+
+`src/main/resources/prod/convert_datetime_to_offset.sql`
+
+This script:
+- Converts `user_feedback.created_at` and `user_quiz_result.taken_at` from `datetime2` to `datetimeoffset(6)` if needed.
+- Normalizes existing `datetimeoffset` precision to `(6)` if required.
+- Is idempotent and guarded: safe to run multiple times.
+
+Example using `sqlcmd`:
+
+```bash
+export AZ_SQL_SERVER="<your-server>"    # without .database.windows.net if your scripts append it
+export AZ_SQL_DB="<your-db>"
+export AZ_SQL_USER="sai-admin@<your-server>"
+# prompt for password or export AZ_SQL_PASSWORD
+sqlcmd -S "tcp:${AZ_SQL_SERVER}.database.windows.net,1433" -d "$AZ_SQL_DB" -U "$AZ_SQL_USER" -P "$AZ_SQL_PASSWORD" -N -i src/main/resources/prod/convert_datetime_to_offset.sql
+```
+
+After running, verify column types:
+
+```sql
+SELECT COLUMN_NAME, DATA_TYPE, DATETIME_PRECISION
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA='dbo' AND TABLE_NAME = 'user_feedback' AND COLUMN_NAME = 'created_at';
+
+SELECT COLUMN_NAME, DATA_TYPE, DATETIME_PRECISION
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA='dbo' AND TABLE_NAME = 'user_quiz_result' AND COLUMN_NAME = 'taken_at';
+```
+
+Restart your App Service afterwards and check logs:
+
+```bash
+az webapp restart -g <resource-group> -n <app-name>
+```
+
