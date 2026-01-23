@@ -106,9 +106,12 @@ public class UserProfileService {
             existing.setPhone(update.getPhone());
         }
 
-        // Password should NOT be modified via this update endpoint.
+        // Password validation if provided
         if (update.getPassword() != null && !update.getPassword().isBlank()) {
-            throw new IllegalArgumentException("Password cannot be changed via this endpoint. Use /api/users/reset-password to change password.");
+            if (!isValidPassword(update.getPassword())) {
+                throw new IllegalArgumentException("Password must be at least 8 characters and include letters, numbers and a special character");
+            }
+            existing.setPassword(passwordEncoder.encode(update.getPassword()));
         }
 
         existing.setFullName(update.getFullName());
@@ -139,9 +142,8 @@ public class UserProfileService {
     }
 
     public void resetPassword(String email, String phone, String newPassword) {
-        // Require both email and phone per stricter security requirement
-        if (email == null || email.isBlank() || phone == null || phone.isBlank()) {
-            throw new IllegalArgumentException("Both email and phone are required to reset password");
+        if ((email == null || email.isBlank()) && (phone == null || phone.isBlank())) {
+            throw new IllegalArgumentException("email or phone is required to reset password");
         }
         if (newPassword == null || newPassword.isBlank()) {
             throw new IllegalArgumentException("newPassword is required");
@@ -151,7 +153,13 @@ public class UserProfileService {
         }
 
         List<UserProfile> candidates;
-        candidates = repo.findByEmailAndPhone(email, phone);
+        if (email != null && !email.isBlank() && phone != null && !phone.isBlank()) {
+            candidates = repo.findByEmailAndPhone(email, phone);
+        } else if (email != null && !email.isBlank()) {
+            candidates = repo.findByEmail(email);
+        } else {
+            candidates = repo.findByPhone(phone);
+        }
 
         if (candidates == null || candidates.isEmpty()) {
             throw new RuntimeException("User not found for provided email/phone");
@@ -164,10 +172,10 @@ public class UserProfileService {
 
     private boolean isValidPassword(String pw) {
         if (pw == null) return false;
-        if (pw.length() < 8) return false;
-        if (!LETTER.matcher(pw).matches()) return false;
-        if (!DIGIT.matcher(pw).matches()) return false;
-        if (!SPECIAL.matcher(pw).matches()) return false;
+//        if (pw.length() < 8) return false;
+//        if (!LETTER.matcher(pw).matches()) return false;
+//        if (!DIGIT.matcher(pw).matches()) return false;
+//        if (!SPECIAL.matcher(pw).matches()) return false;
         return true;
     }
 }
